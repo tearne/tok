@@ -1,3 +1,8 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = "==3.12.*"
+# dependencies = ["pytest"]
+# ///
 """Tests for tok.py — pytest rewrite of test_tok.sh."""
 
 import os
@@ -7,21 +12,32 @@ import sys
 import time
 from pathlib import Path
 
+import pytest
+
 TOK = str(Path(__file__).parent / "tok.py")
 
 
-def run_tok(args, stdin_text="", tok_dir=None, env_extra=None):
+def _tok_env(tok_dir=None, env_extra=None):
+    """Return env + subprocess kwargs for spawning tok.
+    start_new_session detaches from the controlling terminal so getpass
+    falls back to piped stdin instead of blocking on /dev/tty."""
     env = os.environ.copy()
     if tok_dir:
         env["TOK_DIR"] = str(tok_dir)
     if env_extra:
         env.update(env_extra)
+    return env, dict(start_new_session=True)
+
+
+def run_tok(args, stdin_text="", tok_dir=None, env_extra=None):
+    env, kwargs = _tok_env(tok_dir, env_extra)
     return subprocess.run(
         [TOK, *args],
         input=stdin_text,
         capture_output=True,
         text=True,
         env=env,
+        **kwargs,
     )
 
 
@@ -114,16 +130,14 @@ tok._open_tty = lambda: open({str(osc_log)!r}, "a")
 tok.main()
 """)
 
-    env = os.environ.copy()
-    env["TOK_DIR"] = str(tmp_path)
-    # Ensure uv env vars are set so the guard passes
-    env["VIRTUAL_ENV"] = "1"
+    env, kwargs = _tok_env(tok_dir=tmp_path, env_extra={"VIRTUAL_ENV": "1"})
 
     proc = subprocess.Popen(
         [sys.executable, str(wrapper), "--time", "60", "main"],
         stdin=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
+        **kwargs,
     )
     proc.stdin.write(b"testpass\n")
     proc.stdin.flush()
@@ -145,3 +159,7 @@ tok.main()
     # After SIGTERM the clear sequence (empty payload) should appear
     content = osc_log.read_text()
     assert "\033]52;c;\a" in content, "clipboard was not cleared after signal"
+
+if __name__ == "__main__":
+    if "pytest" not in sys.modules or "pytest.pytest_source" not in dir():
+        sys.exit(pytest.main([__file__, "-v"]))
