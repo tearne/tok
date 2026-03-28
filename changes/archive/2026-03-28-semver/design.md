@@ -1,5 +1,5 @@
 # Design: Semantic Versioning
-**Status: Draft**
+**Status: Implementing**
 
 ## Approach
 
@@ -12,8 +12,8 @@ One new test in `tests.py` to cover `--version` output.
 
 ## Tasks
 
-1. **Tests**: Add `test_version_flag` — run `tok --version`, assert exit code 0 and `1.0.0` in output
-2. **Verify**: Run new test, confirm it fails
-3. **Impl**: Add `__version__` and `--version` argument to `tok.py`
-4. **Verify**: Run tests
+1. ✓ **Tests**: Add `test_version_flag` — run `tok --version`, assert exit code 0 and `1.0.0` in output
+2. ✓ **Verify**: Run new test, confirm it fails
+3. ✓ **Impl**: Add `VERSION` and `--version` argument to `tok.py`
+4. ✓ **Verify**: Run tests — 10 passed
 5. **Process**: Confirm ready to archive

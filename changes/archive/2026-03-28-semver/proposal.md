@@ -1,5 +1,5 @@
 # Proposal: Semantic Versioning
-**Status: Draft**
+**Status: Archived**
 
 ## Intent
 

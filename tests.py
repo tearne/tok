@@ -105,6 +105,12 @@ def test_missing_secret_rejected(tmp_path):
     assert r.returncode != 0
 
 
+def test_version_flag(tmp_path):
+    r = run_tok(["--version"], tok_dir=tmp_path)
+    assert r.returncode == 0
+    assert "1.0.0" in r.stdout + r.stderr
+
+
 def test_signal_clears_clipboard(tmp_path):
     """Verify that SIGTERM during the clipboard-clear wait triggers an immediate clear.
 
@@ -130,7 +136,7 @@ tok._open_tty = lambda: open({str(osc_log)!r}, "a")
 tok.main()
 """)
 
-    env, kwargs = _tok_env(tok_dir=tmp_path, env_extra={"VIRTUAL_ENV": "1"})
+    env, kwargs = _tok_env(tok_dir=tmp_path)
 
     proc = subprocess.Popen(
         [sys.executable, str(wrapper), "--time", "60", "main"],

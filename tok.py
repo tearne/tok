@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env -S uv run --script --
 # /// script
 # requires-python = "==3.12.*"
 # ///
@@ -13,9 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-if not (os.environ.get("VIRTUAL_ENV") or os.environ.get("UV_INTERNAL__PARENT_INTERPRETER")):
-    print("Error: run this script via './tok.py' or bootstrap_inst.sh, not directly.")
-    sys.exit(1)
+VERSION = "1.0.0"
 
 TOK_DIR = Path(os.environ.get("TOK_DIR", Path.home() / ".local/share/tok"))
 TIMEOUT = 10
@@ -65,6 +63,7 @@ def main():
         description="Encrypt and retrieve secrets via the clipboard.",
         epilog="Secrets are stored in ~/.local/share/tok/",
     )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     parser.add_argument("--add", "-a", action="store_true", help="interactively add a new secret and passphrase")
     parser.add_argument("--list", "-l", action="store_true", help="list stored secrets")
     parser.add_argument("--stdout", action="store_true",
@@ -161,4 +160,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if not (os.environ.get("VIRTUAL_ENV") or os.environ.get("UV_INTERNAL__PARENT_INTERPRETER")):
+        print("Error: run this script via './tok.py', not directly.")
+        sys.exit(1)
     main()

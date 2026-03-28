@@ -10,6 +10,7 @@ This command can be initialised with a secret (the *tok*en), which it encrypts a
 	- Prompts for the passphrase and copies the named secret to the clipboard
 - `tok --list` or `tok -l`
 	- Lists all available secrets
+- `tok --version` prints the version and exits.
 - The flag `--time` or `-t` allows the user to specify the time (seconds) before the clipboard will be cleared.
 - The flag `--stdout` outputs the decrypted secret to stdout instead of the clipboard, skipping the clipboard-clear timer.
 
@@ -24,6 +25,7 @@ This command can be initialised with a secret (the *tok*en), which it encrypts a
 
 ## Constraints
 - Passphrases must not appear in the process argument list (i.e. avoid `-pass pass:<passphrase>`). Use `-pass stdin` to pipe the passphrase via stdin instead, keeping it out of `/proc/*/cmdline`.
+- The script must define a version using semantic versioning (`MAJOR.MINOR.PATCH`).
 - POS style (see `DEFINITIONS.md`).
 - Uses `openssl enc` for encryption — chosen so the user can see how to decrypt manually on the command line.
 
