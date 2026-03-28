@@ -1,6 +1,6 @@
 # Rekey
 **Type**: Proposal
-**Status**: Draft
+**Status**: Archived
 
 ## Intent
 

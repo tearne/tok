@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 TOK_DIR = Path(os.environ.get("TOK_DIR", Path.home() / ".local/share/tok"))
 TIMEOUT = 10
@@ -65,6 +65,7 @@ def main():
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
     parser.add_argument("--add", "-a", action="store_true", help="interactively add a new secret and passphrase")
+    parser.add_argument("--rekey", "-r", action="store_true", help="re-encrypt all matching secrets under a new passphrase")
     parser.add_argument("--list", "-l", action="store_true", help="list stored secrets")
     parser.add_argument("--stdout", action="store_true",
                         help="output secret to stdout instead of clipboard")
@@ -99,6 +100,40 @@ def main():
             check=True,
         )
         sys.stderr.write(f"Secret '{name}' stored.\n")
+        sys.exit(0)
+
+    # --- Rekey ---
+    if args.rekey:
+        old_passphrase = read_hidden("Current passphrase: ")
+        new_passphrase = read_hidden("New passphrase: ")
+        confirm = read_hidden("Confirm new passphrase: ")
+
+        if new_passphrase != confirm:
+            sys.stderr.write("Error: passphrases do not match.\n")
+            sys.exit(1)
+
+        rekeyed = 0
+        for enc_file in sorted(TOK_DIR.glob("*.enc")):
+            result = subprocess.run(
+                ["openssl", "enc", "-aes-256-cbc", "-pbkdf2", "-d",
+                 "-pass", "stdin", "-in", str(enc_file)],
+                input=(old_passphrase + "\n").encode(),
+                capture_output=True,
+            )
+            if result.returncode != 0:
+                continue
+
+            tmp_file = enc_file.with_suffix(".enc.tmp")
+            subprocess.run(
+                ["openssl", "enc", "-aes-256-cbc", "-pbkdf2", "-salt",
+                 "-pass", "stdin", "-out", str(tmp_file)],
+                input=(new_passphrase + "\n").encode() + result.stdout,
+                check=True,
+            )
+            os.replace(tmp_file, enc_file)
+            rekeyed += 1
+
+        sys.stderr.write(f"{rekeyed} secret(s) rekeyed.\n")
         sys.exit(0)
 
     # --- List ---

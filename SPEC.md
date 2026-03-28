@@ -11,6 +11,7 @@ This command can be initialised with a secret (the *tok*en), which it encrypts a
 - `tok --list` or `tok -l`
 	- Lists all available secrets
 - `tok --version` prints the version and exits.
+- `tok --rekey` or `tok -r` prompts for the current passphrase, a new passphrase, and confirmation; re-encrypts all secrets that decrypt with the current passphrase under the new one; reports the count of rekeyed secrets.
 - The flag `--time` or `-t` allows the user to specify the time (seconds) before the clipboard will be cleared.
 - The flag `--stdout` outputs the decrypted secret to stdout instead of the clipboard, skipping the clipboard-clear timer.
 

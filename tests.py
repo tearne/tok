@@ -108,7 +108,36 @@ def test_missing_secret_rejected(tmp_path):
 def test_version_flag(tmp_path):
     r = run_tok(["--version"], tok_dir=tmp_path)
     assert r.returncode == 0
-    assert "1.0.0" in r.stdout + r.stderr
+    assert "1.1.0" in r.stdout + r.stderr
+
+
+def test_rekey_matching(tmp_path):
+    add_secret(tmp_path, "secret-a", "oldpass", name="a")
+    add_secret(tmp_path, "secret-b", "oldpass", name="b")
+    add_secret(tmp_path, "secret-c", "otherpass", name="c")
+
+    stdin = "oldpass\nnewpass\nnewpass\n"
+    r = run_tok(["--rekey"], stdin_text=stdin, tok_dir=tmp_path)
+    assert r.returncode == 0
+    assert "2" in r.stderr
+
+    r_a = run_tok(["--stdout", "a"], stdin_text="newpass\n", tok_dir=tmp_path)
+    assert r_a.returncode == 0 and r_a.stdout.strip() == "secret-a"
+
+    r_b = run_tok(["--stdout", "b"], stdin_text="newpass\n", tok_dir=tmp_path)
+    assert r_b.returncode == 0 and r_b.stdout.strip() == "secret-b"
+
+    r_c = run_tok(["--stdout", "c"], stdin_text="otherpass\n", tok_dir=tmp_path)
+    assert r_c.returncode == 0 and r_c.stdout.strip() == "secret-c"
+
+
+def test_rekey_no_matches(tmp_path):
+    add_secret(tmp_path, "secret-a", "somepass", name="a")
+
+    stdin = "wrongpass\nnewpass\nnewpass\n"
+    r = run_tok(["--rekey"], stdin_text=stdin, tok_dir=tmp_path)
+    assert r.returncode == 0
+    assert "0" in r.stderr
 
 
 def test_signal_clears_clipboard(tmp_path):
