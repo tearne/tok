@@ -79,8 +79,7 @@ def main():
     # --- Add ---
     if args.add:
         if not args.name:
-            sys.stderr.write("Error: a secret name is required with --add (e.g. tok --add <name>).\n")
-            sys.exit(1)
+            parser.error("a secret name is required with --add (e.g. tok --add <name>)")
 
         secret = read_hidden("Enter secret (input hidden): ")
 
@@ -111,8 +110,7 @@ def main():
 
     # --- Retrieve ---
     if not args.name:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+        parser.error("a secret name is required (e.g. tok <name>)")
 
     name = args.name
     enc_file = TOK_DIR / f"{name}.enc"
