@@ -6,10 +6,15 @@ The README currently contains only a heading. Users who find the repository have
 
 ## Approach
 
-Replace the current single-line README with minimal sections: a one-liner description, prerequisites, installation (curl from GitHub raw URL to `~/.local/bin/tok` and chmod), and tab completion setup for bash and zsh using `tok --completions <shell>`.
+Replace the current single-line README with minimal sections: a one-liner description, prerequisites (install `uv` — link to the uv docs), installation (curl from GitHub raw URL to `~/.local/bin/tok` and chmod), and tab completion setup for bash and zsh using `tok --completions <shell>`.
 
 Keep it short — no usage reference (the script has `--help`), no feature list. The SPEC and `--help` are the authoritative sources for behaviour; the README just gets people running.
 
 The GitHub raw URL will use the pattern `https://raw.githubusercontent.com/tearne/tok/main/tok.py`.
 
 ## Plan
+- [x] UPDATE `README.md` — replace the single heading with: description, prerequisites (uv installation link), install (curl + chmod), and tab completion setup (bash and zsh)
+- [x] REVIEW — read the final README for accuracy and completeness
+
+## Conclusion
+All tasks completed as planned — no deviations.
