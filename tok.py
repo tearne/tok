@@ -13,7 +13,7 @@ import sys
 import time
 from pathlib import Path
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 
 TOK_DIR = Path(os.environ.get("TOK_DIR", Path.home() / ".local/share/tok"))
 TIMEOUT = 10
@@ -57,6 +57,89 @@ def read_hidden(prompt):
         return line
 
 
+def bash_completion_script():
+    return """\
+_tok_completions()
+{
+    local cur opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    opts="--add --rekey --list --completions --stdout --time --version --help"
+
+    # Don't complete secret names after --add (user is choosing a new name)
+    for word in "${COMP_WORDS[@]}"; do
+        if [[ "$word" == "--add" || "$word" == "-a" ]]; then
+            COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+            return 0
+        fi
+    done
+
+    # Complete shell name after --completions
+    if [[ "$prev" == "--completions" ]]; then
+        COMPREPLY=( $(compgen -W "bash zsh" -- "$cur") )
+        return 0
+    fi
+
+    # Complete flags or secret names
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+    else
+        local names
+        names=$(tok --list 2>/dev/null)
+        COMPREPLY=( $(compgen -W "$names" -- "$cur") )
+    fi
+    return 0
+}
+complete -F _tok_completions tok"""
+
+
+def zsh_completion_script():
+    return """\
+#compdef tok
+
+_tok()
+{
+    local -a secrets
+    local -a args
+
+    # Don't complete secret names after --add (user is choosing a new name)
+    if (( ${words[(I)--add]} || ${words[(I)-a]} )); then
+        args=(
+            '(--add -a)'{--add,-a}'[interactively add a new secret and passphrase]'
+            '--rekey[re-encrypt all matching secrets under a new passphrase]'
+            '(--list -l)'{--list,-l}'[list stored secrets]'
+            '--completions[print shell completion script and exit]:shell:(bash zsh)'
+            '--stdout[output secret to stdout instead of clipboard]'
+            '(--time -t)'{--time,-t}'[clipboard clear timeout in seconds]:seconds:'
+            '--version[show version]'
+            '--help[show help]'
+        )
+        _arguments -s $args
+        return
+    fi
+
+    secrets=( ${(f)"$(tok --list 2>/dev/null)"} )
+
+    args=(
+        '(--add -a)'{--add,-a}'[interactively add a new secret and passphrase]'
+        '--rekey[re-encrypt all matching secrets under a new passphrase]'
+        '(--list -l)'{--list,-l}'[list stored secrets]'
+        '--completions[print shell completion script and exit]:shell:(bash zsh)'
+        '--stdout[output secret to stdout instead of clipboard]'
+        '(--time -t)'{--time,-t}'[clipboard clear timeout in seconds]:seconds:'
+        '--version[show version]'
+        '--help[show help]'
+        "1:secret name:($secrets)"
+    )
+
+    _arguments -s $args
+}
+
+_tok "$@\""""
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="tok",
@@ -67,12 +150,19 @@ def main():
     parser.add_argument("--add", "-a", action="store_true", help="interactively add a new secret and passphrase")
     parser.add_argument("--rekey", "-r", action="store_true", help="re-encrypt all matching secrets under a new passphrase")
     parser.add_argument("--list", "-l", action="store_true", help="list stored secrets")
+    parser.add_argument("--completions", choices=["bash", "zsh"], metavar="SHELL",
+                        help="print shell completion script and exit (bash or zsh)")
     parser.add_argument("--stdout", action="store_true",
                         help="output secret to stdout instead of clipboard")
     parser.add_argument("--time", "-t", type=int, default=TIMEOUT, metavar="N",
                         help="clipboard clear timeout in seconds (default: %(default)s)")
     parser.add_argument("name", nargs="?", default=None, help="secret name")
     args = parser.parse_args()
+
+    # --- Completions ---
+    if args.completions:
+        print(bash_completion_script() if args.completions == "bash" else zsh_completion_script())
+        sys.exit(0)
 
     TOK_DIR.mkdir(parents=True, exist_ok=True)
 

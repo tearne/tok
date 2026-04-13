@@ -14,6 +14,7 @@ This command can be initialised with a secret (the *tok*en), which it encrypts a
 - `tok --rekey` or `tok -r` prompts for the current passphrase, a new passphrase, and confirmation; re-encrypts all secrets that decrypt with the current passphrase under the new one; reports the count of rekeyed secrets.
 - The flag `--time` or `-t` allows the user to specify the time (seconds) before the clipboard will be cleared.
 - The flag `--stdout` outputs the decrypted secret to stdout instead of the clipboard, skipping the clipboard-clear timer.
+- `tok --completions <shell>` where `<shell>` is `bash` or `zsh` — prints a shell-specific completion script to stdout and exits. The user sources or installs this script to enable Tab completion of secret names and flags. Mutually exclusive with other operations.
 
 ## Behaviour
 - Copies to the system clipboard using OSC 52 escape sequences. Works over SSH, through terminal multiplexers (e.g. Zellij), and on any OS — no clipboard tools required on the remote host.
@@ -46,6 +47,11 @@ This command can be initialised with a secret (the *tok*en), which it encrypts a
   - Missing secret: requesting a non-existent name fails with a clear error.
 - Listing: `--list` shows all stored secret names.
 - Signal cleanup: SIGTERM during the wait period produces a valid OSC 52 clear sequence (`\033]52;c;\a` — empty payload).
+
+- Tab completion:
+  - `tok --completions bash` exits 0 and produces output containing the expected completion function name.
+  - `tok --completions zsh` exits 0 and produces output containing the expected completion function name.
+  - `tok --completions invalid` exits non-zero.
 
 ### Not tested
 - Passphrase prompt when stdin is piped (requires `/dev/tty`).

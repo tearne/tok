@@ -108,7 +108,7 @@ def test_missing_secret_rejected(tmp_path):
 def test_version_flag(tmp_path):
     r = run_tok(["--version"], tok_dir=tmp_path)
     assert r.returncode == 0
-    assert "1.1.0" in r.stdout + r.stderr
+    assert "1.1.1" in r.stdout + r.stderr
 
 
 def test_rekey_matching(tmp_path):
@@ -194,6 +194,23 @@ tok.main()
     # After SIGTERM the clear sequence (empty payload) should appear
     content = osc_log.read_text()
     assert "\033]52;c;\a" in content, "clipboard was not cleared after signal"
+
+def test_completions_bash(tmp_path):
+    r = run_tok(["--completions", "bash"], tok_dir=tmp_path)
+    assert r.returncode == 0
+    assert "_tok_completions" in r.stdout
+
+
+def test_completions_zsh(tmp_path):
+    r = run_tok(["--completions", "zsh"], tok_dir=tmp_path)
+    assert r.returncode == 0
+    assert "_tok" in r.stdout
+
+
+def test_completions_invalid(tmp_path):
+    r = run_tok(["--completions", "invalid"], tok_dir=tmp_path)
+    assert r.returncode != 0
+
 
 if __name__ == "__main__":
     if "pytest" not in sys.modules or "pytest.pytest_source" not in dir():
